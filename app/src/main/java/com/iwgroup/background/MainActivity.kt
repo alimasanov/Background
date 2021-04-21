@@ -3,32 +3,55 @@ package com.iwgroup.background
 import android.graphics.*
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.ImageView
-import android.widget.SeekBar
+import android.widget.*
+import androidx.annotation.DrawableRes
 import androidx.annotation.IntRange
 
 class MainActivity : AppCompatActivity() {
 
-    companion object {
-        const val SAVED_ALPHA = "SAVED_ALPHA"
-        const val SAVED_CORNER = "SAVED_CORNER"
-    }
-
-    private var savedAlpha: Int = 0
-    private var savedCorner: Int = 0
+    private var savedAlpha: Int = 100
+    private var savedCorner: Int = 8
+    private var savedWidth: Int = 40
+    private var savedHeight: Int = 40
+    @DrawableRes
+    private var savedImage: Int = R.drawable.ic_small
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        setImage(savedAlpha, savedCorner)
+        setImage(savedImage, savedAlpha, savedCorner, savedWidth, savedHeight)
+
+        findViewById<RadioGroup>(R.id.rgSize).setOnCheckedChangeListener { group, checkedId ->
+            val rb = findViewById<RadioButton>(checkedId)
+            when (rb.tag) {
+                "rbSmall" -> {
+                    savedWidth = 40
+                    savedHeight = 40
+                    savedImage = R.drawable.ic_small
+                    setImage(savedImage, savedAlpha, savedCorner, savedWidth, savedHeight)
+                }
+                "rbMiddle" -> {
+                    savedWidth = 110
+                    savedHeight = 110
+                    savedImage = R.drawable.ic_middle
+                    setImage(savedImage, savedAlpha, savedCorner, savedWidth, savedHeight)
+                }
+                "rbBig" -> {
+                    savedWidth = 180
+                    savedHeight = 110
+                    savedImage = R.drawable.ic_big
+                    setImage(savedImage, savedAlpha, savedCorner, savedWidth, savedHeight)
+                }
+            }
+        }
 
         findViewById<SeekBar>(R.id.sbCorners).setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser && progress in 0..50) {
                     savedCorner = progress
-                    setImage(savedAlpha, progress)
+                    setImage(savedImage, savedAlpha, savedCorner, savedWidth, savedHeight)
                 }
             }
 
@@ -41,7 +64,7 @@ class MainActivity : AppCompatActivity() {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser && progress in 0..100) {
                     savedAlpha = progress
-                    setImage(progress, savedCorner)
+                    setImage(savedImage, savedAlpha, savedCorner, savedWidth, savedHeight)
                 }
             }
 
@@ -50,14 +73,14 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun setImage(@IntRange(from = 0, to = 100) alpha: Int, cornersDp: Int = 8) {
+    private fun setImage(@DrawableRes drawableRes: Int, @IntRange(from = 0, to = 100) alpha: Int, cornersDp: Int = 8, _widthDp: Int, _heightDp: Int) {
         findViewById<ImageView>(R.id.ivImage)
             .setImageBitmap(
                 applicationContext
                     .getBitmap(
-                        R.drawable.ic__021,
-                        180.toPx(),
-                        110.toPx()
+                        drawableRes,
+                        _widthDp.toPx(),
+                        _heightDp.toPx()
                     )
                     ?.makeTransparent(alpha)
                     ?.makeRoundedCorners(cornersDp.toPx().toFloat())
@@ -65,8 +88,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 }
-
-
 
 fun Bitmap.makeTransparent(@IntRange(from = 0, to = 100) value: Int): Bitmap {
     val alpha = 255 * value / 100
